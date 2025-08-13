@@ -1,163 +1,258 @@
 <?php
-include('../main/connect.php');
+session_start();
+
+// Check if logout is requested
+if(isset($_GET['logout']) && $_GET['logout'] == 'true') {
+    // If yes, destroy the session
+    session_destroy();
+
+    // Redirect to the login page after logout
+    header("Location: index.php");
+    exit();
+}
+
+// Include the database connection file if needed
+// include('admin/db_connect.php');
+
+// Check if nomination started and get election name
+function isNominationStarted() {
+    // Assuming you have already connected to the database
+    $servername = "localhost";
+    $username = "your_username";
+    $password = "your_password";
+    $database = "votingsystem";
+    $conn = new mysqli($servername, $username, $password, $database);
+
+    // Check if connection is successful
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    // Query to fetch nomination status, election name, and year
+    $query = "SELECT status, election_name, year FROM election WHERE status = 1";
+
+    // Execute the query
+    $result = $conn->query($query);
+
+    // Check if there are any rows returned
+    if ($result && $result->num_rows > 0) {
+        // Nomination started
+        $row = $result->fetch_assoc();
+
+        return array("status" => true, "election_name" => $row['election_name'], "year" => $row['year']);
+    } else {
+        // Nomination not started
+        return array("status" => false, "election_name" => "", "year" => "");
+    }
+
+    // Close the connection
+    $conn->close();
+}
+
+function isElectionStarted() {
+    // Assuming you have already connected to the database
+    $servername = "localhost";
+    $username = "your_username";
+    $password = "your_password";
+    $database = "votingsystem";
+    $conn = new mysqli($servername, $username, $password, $database);
+
+    // Check if connection is successful
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    // Query to fetch nomination status, election name, and year
+    $query = "SELECT ele_status FROM election WHERE ele_status = 1";
+
+    // Execute the query
+    $result = $conn->query($query);
+
+    // Check if there are any rows returned
+    if ($result && $result->num_rows > 0) {
+        // Nomination started
+        $row = $result->fetch_assoc();
+
+        // echo "<script>alert('".$row['ele_status']."')</script>";
+
+        return array("ele_status" => $row['ele_status']);
+    } else {
+        // echo "<script>alert('0')</script>";
+        // Nomination not started
+        return array("ele_status" => false);
+    }
+
+    // Close the connection
+    $conn->close();
+}
+
+$nominationData = isNominationStarted();
+$isNominationStarted = $nominationData['status'];
+$electionName = $nominationData['election_name'];
+$electionYear = $nominationData['year'];
+$iselectiondata = isElectionStarted();
+$elestatus = $iselectiondata['ele_status'];
+$electionStartedMessage = '';
+
+if ($elestatus == 1) {
+    $electionStartedMessage = "The Election has started";
+}
 ?>
 
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
-    <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <link rel="stylesheet" href="style.css">
+    <title>Home</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <style>
+        body{
+            background-image: url('img3.png');
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        .collapse{
+            justify-content: center;
+            padding-left: 52%;
+        }
+        .button{
+            position: absolute;
+            right: 50%;
+            top: 75%;
+        }
+        /* Add style for the rectangular div */
+        .rectangle {
+            position: absolute;
+            right: 30px;
+            top: 100px;
+            width: 30%;
+            height: fit-content; /* Adjust height as needed */
+            border: 1px solid black;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .message {
+            color: green;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .move-left {
+    animation: moveLeft 10s linear infinite;
+}
+
+@keyframes moveLeft {
+    0% {
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(calc(-100% - 4vw));
+    }
+}
+
+.move-right {
+    animation: moveRight 10s linear infinite;
+}
+
+@keyframes moveRight {
+    0% {
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+
+    </style>
 </head>
-
 <body>
-    <div class="wrapper">
-        <aside id="sidebar">
-            <div class="d-flex">
-                <button class="toggle-btn" type="button">
-                    <i class="lni lni-grid-alt"></i>
-                </button>
-                <div class="sidebar-logo">
-                    <a href="#" style="font-size: x-small;">
-                        <?php 
-                            session_start();
-                            echo $_SESSION['email'];
-                        ?>
-                    </a>
-                </div>
-            </div>
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="admin-index.php" class="sidebar-link">
-                        <i class="lni lni-user"></i>
-                        <span>New Election</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="verify.php" class="sidebar-link">
-                        <i class="lni lni-agenda"></i>
-                        <span>Manage Candidate</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="position.php" class="sidebar-link">
-                        <i class="lni lni-agenda"></i>
-                        <span>Manage Positions</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="courses.php" class="sidebar-link">
-                        <i class="lni lni-agenda"></i>
-                        <span>Manage Courses</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="email.php" class="sidebar-link">
-                        <i class="lni lni-popup"></i>
-                        <span>Email</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="result.php" class="sidebar-link">
-                        <i class="lni lni-popup"></i>
-                        <span>Results</span>
-                    </a>
-                </li>
-            </ul>
-            <li class="sidebar-item">
-                    <a href="admin-pass.php" class="sidebar-link">
-                        <i class="lni lni-cog"></i>
-                        <span>Change Password</span>
-                    </a>
-                </li>
-                <?php if(isset($_SESSION['email'])): ?>
-            <div class="sidebar-footer">
-                <a href="../index.php?logout=true" class="sidebar-link" onclick="return confirmDelete()">
-                    <i class="lni lni-exit"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-            <?php endif; ?>
-        </aside>
-        <div class="main">
-            <nav class="navbar navbar-expand px-4 py-3">
-                <form action="#" class="d-none d-sm-inline-block">
-
-                </form>
-                <div class="navbar-collapse collapse">
-                    <ul class="navbar-nav ms-auto">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <img src="img2.webp" alt="logo" height="60px" width="70px">&nbsp;
+            <h2>Voting System</h2>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="index.php">Home</a>
+                    </li>
+                    <?php if(!isset($_SESSION['name'])): ?>
                         <li class="nav-item dropdown">
-                            <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
-                                <img src="account.png" class="avatar img-fluid" alt="">
-                            </a>
-                            <!-- <div class="dropdown-menu dropdown-menu-end rounded">
-
-                            </div> -->
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" align="right">Register</a>
+                            <ul class="dropdown-menu">
+                                <!-- <li><a class="dropdown-item" href="candidate-register.php">Candidate Nomination</a></li> -->
+                                <li><a class="dropdown-item" href="register.php">Student Register</a></li>
+                            </ul>
                         </li>
-                    </ul>
-                </div>
-            </nav>
-            <main class="content px-3 py-4">
-                <div class="container-fluid">
-                        <h2 class="fw-bold fs-4 mb-3">Dashboard</h2>
-                        <div class="row">
-<div class="col-md-3">
-    <a href="../student-list.php"><div class="card h-100">
-        <div class="card-body bg-primary">
-            <div class="card-body text-white">
-                <span class="watermark-icon"><i class="lni lni-users"></i></span>
-                <h4><b><?php echo $conn->query("SELECT * FROM `students`")->num_rows; ?></b></h4>
-                <p><b>Students</b></p>
+                    <?php endif; ?>
+                    <?php if(!isset($_SESSION['name'])): ?>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" align="right">LOGIN</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="admin/admin-login.php">Admin login</a></li>
+                                <li><a class="dropdown-item" href="login.php">Student login</a></li>
+                            </ul>
+                        </li>
+                    <?php endif; ?>
+                    <?php if(isset($_SESSION['name'])): ?>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" align="right">Nomination</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="candidate-register.php">Candidate Nomination</a></li>
+                                <!-- <li><a class="dropdown-item" href="register.php">Student Register</a></li> -->
+                            </ul>
+                        </li>
+                    <?php endif; ?>
+                    <?php if(isset($_SESSION['name'])): ?>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" align="right"><?php echo $_SESSION['name']; ?></a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="user-profile.php" id="logout">Profile</a></li>
+                                <li><a class="dropdown-item" href="./index.php?logout=true" id="logout" onclick="return confirmDelete()">Logout</a></li>
+                            </ul>
+                        </li>
+                    <?php endif; ?>
+                </ul>
             </div>
         </div>
-    </div></a>
+    </nav>
+     
+    <?php if(!isset($_SESSION['name'])): ?>
+        <div class="button">
+            <a href="login.php"><button type="button" class="btn btn-primary btn-lg">Voters Login</button></a>
+        </div>
+    <?php endif; ?>
+
+    <?php if(isset($_SESSION['name']) && $elestatus==1): ?>
+        <div class="button">
+            <a href="main/GS.php"><button type="button" class="btn btn-secondary btn-lg">Start Voting</button></a>
+        </div>
+    <?php endif; ?>
+
+    <div class="rectangle">
+    <center><p class="text-danger"><b><u>NOTIFICATION</b></u></p></center>
+    <p class="message <?php echo $isNominationStarted ? 'move-left' : ''; ?>">
+        <?php 
+        if ($isNominationStarted) {
+            echo "Nomination has started for the election '" . $electionName . "' of the year " . $electionYear;
+        } 
+        ?>
+    </p>
+    <?php if ($electionStartedMessage !== ''): ?>
+        <p class="message move-right"><?php echo $electionStartedMessage; ?></p>
+    <?php endif; ?>
 </div>
 
-<div class="col-md-3">
-    <a href="candidate-list.php"><div class="card h-100">
-        <div class="card-body bg-warning">
-            <div class="card-body text-white">
-                <span class="watermark-icon"><i class="lni lni-user"></i></span>
-                <h4><b><?php echo $conn->query("SELECT * FROM `candidate` where status=1")->num_rows; ?></b></h4>
-                <p><b>Candidates</b></p>
-            </div>
-        </div>
-    </div></a>
-</div>
-
-<div class="col-md-3">
-    <a href="position-list.php"><div class="card h-100">
-        <div class="card-body bg-success">
-            <div class="card-body text-white">
-                <span class="watermark-icon"><i class="lni lni-briefcase"></i></span>
-                <h4><b><?php echo $conn->query("SELECT * FROM `position`")->num_rows; ?></b></h4>
-                <p><b>Positions</b></p>
-            </div>
-        </div>
-    </div></a>
-</div>
-
-<div class="col-md-3">
-    <a href="courses-list.php"><div class="card h-100">
-        <div class="card-body bg-secondary">
-            <div class="card-body text-white">
-                <span class="watermark-icon"><i class="lni lni-book"></i></span>
-                <h4><b><?php echo $conn->query("SELECT * FROM `courses`")->num_rows; ?></b></h4>
-                <p><b>Courses</b></p>
-            </div>
-        </div>
-    </div></a>
-</div>
-                    </div>
-                            
-            </main>
-        </div>
+    <div class="container">
+        <?php
+        // Check if the 'nomination_started' parameter is set in the URL
+        if(isset($_GET['nomination_started']) && $_GET['nomination_started'] == 'true') {
+            echo "<div class='alert alert-success' role='alert'>Nomination Started</div>";
+        }
+        ?>
     </div>
 
     <script>
@@ -165,10 +260,7 @@ include('../main/connect.php');
             return confirm("Are you sure you want to Logout?");
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-        crossorigin="anonymous"></script>
-    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Ensure you have jQuery included -->
 </body>
-
 </html>
