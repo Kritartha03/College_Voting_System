@@ -32,3 +32,7 @@ Traditional college elections are time-consuming, require significant manpower, 
 * Mobile application support
 * Advanced analytics dashboard
 * Biometric authentication
+
+## Author
+
+Kritartha Goswami
