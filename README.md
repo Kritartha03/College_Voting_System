@@ -1,2 +1,34 @@
-# College_Voting_System
-This project is an **Online College Voting System** made using PHP and MySQL. It is designed to make the voting process simple, fast, and secure. Students can register, log in, and vote for their preferred candidates. Candidates can also register and be managed easily. The system has an admin panel where administrators can manage students, candidates, and the overall voting process. It uses a secure login system to prevent unauthorized access and ensures that each student can vote only once. The interface is user-friendly, making it easy for anyone to use and helping to make elections more transparent and efficient.
+# College Voting System
+
+## Overview
+
+The College Voting System is a web-based application designed to conduct college elections digitally. It enables students to cast their votes securely from any location using their personal devices, eliminating the need for traditional paper-based voting.
+
+## Features
+
+* Secure student authentication
+* Online vote casting
+* Real-time vote counting
+* Candidate management
+* Admin dashboard
+* Result generation and display
+* Reduced manual effort and errors
+
+## Tech Stack
+
+* PHP
+* HTML
+* CSS
+* JavaScript
+* MySQL
+
+## Problem Solved
+
+Traditional college elections are time-consuming, require significant manpower, and are prone to errors. This system provides a secure, efficient, and transparent voting process that allows students to participate from anywhere.
+
+## Future Enhancements
+
+* OTP-based verification
+* Mobile application support
+* Advanced analytics dashboard
+* Biometric authentication
